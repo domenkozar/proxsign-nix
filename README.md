@@ -16,7 +16,22 @@ First you'll need to install Nix via terminal (work on any Linux distribution):
 Then install proxsign:
 
     $ nix-env -i -f https://github.com/domenkozar/proxsign-nix/tarball/master
+    
+### Installing on NixOS
 
+If you are using nixos you can also add package to your nixos configuration.
+To install pacakge in you `system` profile you can add this in
+your `configuration.nix` file and rebuild your system:
+
+```nix
+environment.systemPackages = [
+  # ProxSign
+  (import (builtins.fetchTarball {
+    url = "https://github.com/domenkozar/proxsign-nix/archive/cc26bee496facdb61c2cbb2bcfef55e167d4a85b.tar.gz";
+    sha256 = "0smhpz7hw382mlin79v681nws4pna5bdg0w8cjb4iq23frnb5dw6";
+  }))
+];
+```
 
 ## Usage
 
