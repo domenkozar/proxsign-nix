@@ -1,23 +1,49 @@
 with (import (builtins.fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/1944dc7e706e172a55125370f603df514518f094.tar.gz";
-    sha256 = "01gdnqdz7yjazdvcin6g5fnc3fdnh73k85sy29d6ndmiqhip937q";
+    url = "https://github.com/NixOS/nixpkgs/archive/093faad9684796975520d9d88503e76ab539b8ef.tar.gz";
+    sha256 = "0v3an5f5anvqqfpihp9sgrhnzv68qvjihq16mjhfycglsz758z6p";
   }) {});
 
 stdenv.mkDerivation rec {
   name = "proxysign-${version}";
-  version = "2.1.2-58.1";
+  version = "2.1.4-1+9.1";
 
   src = fetchurl {
-    url = "http://www.si-ca.si/podpisna_komponenta/g2/xml2_1_2_58_1/Ubuntu-17.10/proxsign_${version}_amd64.deb";
-    sha256 = "0z4z8bk7yhqjsj4yr50nsc7sicfflv842pzcas95dbgg0ssnl8jg";
+    url = "https://www.si-trust.gov.si/assets/proxsign/druga-generacija/linux/v2.1.4.9.1/Ubuntu-18.04/proxsign_${version}_amd64.deb";
+    sha256 = "002bxf1qzl5qjmqrlikpljkx8pg3a4fmn8bj38mr5y76m8rchkgy";
   };
 
   nativeBuildInputs = [ dpkg makeWrapper ];
   unpackPhase = "dpkg -x $src ./";
 
   installPhase = let
-      env = with xorg; stdenv.lib.makeLibraryPath [ freetype fontconfig libX11 libXrender xercesc zlib libjpeg_original pango boost162 cairo nss nss_ldap openssl stdenv.cc.cc qt5.qtbase  openldap nspr libxcb xalanc ];
-    in ''
+    env = with xorg; stdenv.lib.makeLibraryPath [
+      freetype
+      fontconfig
+      libX11
+      libXrender
+      xercesc
+      zlib
+      pango
+      boost165
+      cairo
+      nss
+      nss_ldap
+      openssl
+      stdenv.cc.cc
+      qt5.qtbase
+      openldap
+      nspr
+      libxcb
+      xalanc
+      (libjpeg_original.overrideDerivation (p: {
+        name = "libjpeg-8d";
+        src = fetchurl {
+          url = http://www.ijg.org/files/jpegsrc.v8d.tar.gz;
+          sha256 = "1cz0dy05mgxqdgjf52p54yxpyy95rgl30cnazdrfmw7hfca9n0h0";
+        };
+      }))
+    ];
+  in ''
     mkdir -p $out/{bin,etc,lib}
 
     mv usr/bin/proxsign $out/bin/
