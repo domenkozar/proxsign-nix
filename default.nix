@@ -4,7 +4,7 @@ with (import (builtins.fetchTarball {
   }) {});
 
 stdenv.mkDerivation rec {
-  name = "proxysign-${version}";
+  pname = "proxysign";
   version = "2.1.4-1+9.1";
 
   src = fetchurl {
@@ -44,10 +44,11 @@ stdenv.mkDerivation rec {
       }))
     ];
   in ''
-    mkdir -p $out/{bin,etc,lib}
+    mkdir -p $out/{bin,etc,share,lib}
 
     mv usr/bin/proxsign $out/bin/
     mv etc/proxsign.ini $out/etc/
+    mv usr/share/{applications,icons} $out/share
 
     ln -s ${curl.out}/lib/libcurl.so.4 $out/lib/libcurl-nss.so.4
     patchelf --set-rpath "$out/lib:${env}" \
