@@ -1,24 +1,30 @@
 with (import (builtins.fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/093faad9684796975520d9d88503e76ab539b8ef.tar.gz";
-    sha256 = "0v3an5f5anvqqfpihp9sgrhnzv68qvjihq16mjhfycglsz758z6p";
+  url = "https://github.com/NixOS/nixpkgs/archive/9e86f5f7a19db6da2445f07bafa6694b556f9c6d.tar.gz";
+    sha256 = "sha256:0i2j7bf6jq3s13n12xahramami0n6zn1mksqgi01k7flpgyymcck";
   }) {});
 
-stdenv.mkDerivation rec {
-  pname = "proxysign";
-  version = "2.1.4-1+9.1";
+let 
+  oldnixpkgs = (import (builtins.fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/3e1be2206b4c1eb3299fb633b8ce9f5ac1c32898.tar.gz";
+    sha256 = "sha256:11d01fdb4d1avi7564h7w332h3jjjadsqwzfzpyh5z56s6rfksxc";
+  }) {});
+
+in stdenv.mkDerivation rec {
+  pname = "proxsign";
+  version = "2.2.7";
 
   src = fetchurl {
-    url = "https://www.si-trust.gov.si/assets/proxsign/druga-generacija/linux/v2.1.4.9.1/Ubuntu-18.04/proxsign_${version}_amd64.deb";
-    sha256 = "002bxf1qzl5qjmqrlikpljkx8pg3a4fmn8bj38mr5y76m8rchkgy";
+    url = "https://proxsign.setcce.si/proxsign/repo/xUbuntu_20.04/amd64/proxsign_2.2.7-1+10.3_amd64.deb";
+    #sha256 = "sha256:1a0p7njy8krf41fpvxvl3qf2ydgsyhcigysyrb9wjd483nryxzaj";
+    sha256 = "sha256:1gc4ikxgy8fa243j6hc4nr7wx8imn256ixks7vb25vnnrii21dij";
   };
 
   nativeBuildInputs = [ dpkg makeWrapper ];
   unpackPhase = "dpkg -x $src ./";
 
   installPhase = let
-    env = with xorg; stdenv.lib.makeLibraryPath [
+    env = with xorg; lib.makeLibraryPath [
       freetype
-      fontconfig
       libX11
       libXrender
       xercesc
@@ -26,15 +32,21 @@ stdenv.mkDerivation rec {
       pango
       boost165
       cairo
+      libtiff
+      libpng
+      podofo
       nss
       nss_ldap
       openssl
       stdenv.cc.cc
       qt5.qtbase
       openldap
+      libunistring
+      oldnixpkgs.libidn
       nspr
       libxcb
       xalanc
+      fontconfig
       (libjpeg_original.overrideDerivation (p: {
         name = "libjpeg-8d";
         src = fetchurl {
@@ -49,8 +61,12 @@ stdenv.mkDerivation rec {
     mv usr/bin/proxsign $out/bin/
     mv etc/proxsign.ini $out/etc/
     mv usr/share/{applications,icons} $out/share
+    mv usr/lib/*/libp* $out/lib/
 
     ln -s ${curl.out}/lib/libcurl.so.4 $out/lib/libcurl-nss.so.4
+
+    patchelf --set-rpath "$out/lib:${env}" \
+      $out/lib/libpxs-podofo.so.0.9.7
     patchelf --set-rpath "$out/lib:${env}" \
       --set-interpreter $(cat $NIX_CC/nix-support/dynamic-linker) $out/bin/proxsign
 
