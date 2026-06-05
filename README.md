@@ -1,12 +1,12 @@
 # Proxsign (for Linux using Nix)
 
-[![Build Status](https://travis-ci.org/domenkozar/proxsign-nix.svg?branch=master)](https://travis-ci.org/domenkozar/proxsign-nix)
-
 This repository contains reproducible installation for proxsign signing component
 required for some Slovenian national infrastructure.
 
-## Installation
+> **Note:** Upstream now distributes proXSign as an AppImage. This package wraps it using
+> `appimageTools` for seamless use on NixOS and other Linux distributions with Nix.
 
+## Installation
 
 First you'll need to install Nix via terminal (works on any Linux distribution):
 
@@ -16,20 +16,45 @@ First you'll need to install Nix via terminal (works on any Linux distribution):
 Then install proxsign:
 
     $ nix-env -i -f https://github.com/domenkozar/proxsign-nix/tarball/master
-    
-### Installing on NixOS
 
-If you are using nixos you can also add package to your nixos configuration.
-To install pacakge in you `system` profile you can add this in
-your `configuration.nix` file and rebuild your system:
+Or run it directly without installing (requires flakes):
+
+    $ nix run github:domenkozar/proxsign-nix
+
+### Installing on NixOS (classic)
+
+If you are using NixOS you can also add the package to your `configuration.nix`.
+
+To pin to a specific version, pick a commit hash from the [repository history](https://github.com/domenkozar/proxsign-nix/commits/master)
+and fetch its sha256:
+
+    $ nix-prefetch-url --unpack https://github.com/domenkozar/proxsign-nix/archive/<git-commit-hash>.tar.gz
+
+Then add it to your `configuration.nix` and rebuild:
 
 ```nix
 environment.systemPackages = [
   # ProxSign
   (import (builtins.fetchTarball {
-    url = "https://github.com/domenkozar/proxsign-nix/archive/cc26bee496facdb61c2cbb2bcfef55e167d4a85b.tar.gz";
-    sha256 = "0smhpz7hw382mlin79v681nws4pna5bdg0w8cjb4iq23frnb5dw6";
+    url = "https://github.com/domenkozar/proxsign-nix/archive/<git-commit-hash>.tar.gz";
+    sha256 = "<output from nix-prefetch-url above>";
   }))
+];
+```
+
+### Installing on NixOS (flakes)
+
+Add to your `flake.nix` inputs:
+
+```nix
+inputs.proxsign.url = "github:domenkozar/proxsign-nix";
+```
+
+Then add the package to your system:
+
+```nix
+environment.systemPackages = [
+  inputs.proxsign.packages.x86_64-linux.proxsign
 ];
 ```
 
